@@ -8,6 +8,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import {
   CategoryIcon,
   getCategoryColor,
+  getCategoryBaseColor,
 } from "@/app/components/CategoryIcon";
 import { Calendar } from "@/app/components/ui/calendar";
 import {
@@ -15,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/components/ui/popover";
-import { CalendarIcon, Check } from "lucide-react";
+import { CalendarIcon, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -24,12 +25,12 @@ export const AddExpense: React.FC = () => {
   const categories: Array<
     "Food" | "Transport" | "School" | "Entertainment" | "Others"
   > = [
-    "Food",
-    "Transport",
-    "School",
-    "Entertainment",
-    "Others",
-  ];
+      "Food",
+      "Transport",
+      "School",
+      "Entertainment",
+      "Others",
+    ];
 
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<
@@ -69,25 +70,25 @@ export const AddExpense: React.FC = () => {
   };
 
   return (
-    <div className="min-full overflow-y-auto bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-background pb-28 pt-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-b-3xl shadow-lg">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold">Add Expense</h1>
-          <p className="text-blue-100 mt-1">
-            Track your spending
-          </p>
-        </div>
+      <div className="max-w-lg mx-auto px-6 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
+          Add Expense
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Track your spending
+        </p>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-4">
-        <Card className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+      <div className="max-w-lg mx-auto px-6">
+        <div className="p-6 bg-card border border-gray-200 dark:border-white/5 rounded-3xl shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Amount */}
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (₱)</Label>
+              <Label htmlFor="amount" className="text-gray-900 dark:text-white">Amount (₱)</Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-lg">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
                   ₱
                 </span>
                 <Input
@@ -97,7 +98,7 @@ export const AddExpense: React.FC = () => {
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="pl-8 h-14 text-2xl font-bold rounded-xl"
+                  className="pl-8 h-14 text-2xl font-bold rounded-xl bg-background border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-muted-foreground/50 focus-visible:ring-primary/50"
                   required
                 />
               </div>
@@ -105,36 +106,30 @@ export const AddExpense: React.FC = () => {
 
             {/* Category */}
             <div className="space-y-3">
-              <Label>Category</Label>
-              <div className="grid grid-cols-3 gap-3">
+              <Label className="text-gray-900 dark:text-white">Category</Label>
+              <div className="grid grid-cols-3 gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     type="button"
                     onClick={() => setCategory(cat)}
-                    className={`p-4 rounded-2xl border-2 transition-all ${
-                      category === cat
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                        : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                    }`}
+                    className={`p-3 rounded-2xl border transition-all ${category === cat
+                      ? "border-primary bg-primary/10"
+                      : "border-gray-200 dark:border-white/5 bg-background hover:bg-gray-100 dark:hover:bg-white/5 hover:border-gray-300 dark:hover:border-white/10"
+                      }`}
                   >
                     <div className="flex flex-col items-center gap-2">
                       <div
-                        className={`p-3 rounded-xl ${getCategoryColor(cat)}`}
+                        className={`p-2.5 rounded-xl bg-${getCategoryBaseColor(cat)}-500/10 text-${getCategoryBaseColor(cat)}-600 dark:text-${getCategoryBaseColor(cat)}-400`}
                       >
                         <CategoryIcon
                           category={cat}
-                          size={24}
+                          size={20}
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <span className={`text-xs font-medium whitespace-normal text-center w-full leading-tight ${category === cat ? 'text-primary' : 'text-muted-foreground'}`}>
                         {cat}
                       </span>
-                      {category === cat && (
-                        <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
-                          <Check className="h-3 w-3 text-white" />
-                        </div>
-                      )}
                     </div>
                   </button>
                 ))}
@@ -143,20 +138,20 @@ export const AddExpense: React.FC = () => {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-gray-900 dark:text-white">Description</Label>
               <Textarea
                 id="description"
                 placeholder="e.g., Lunch at cafeteria"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="h-20 rounded-xl resize-none"
+                className="h-20 rounded-xl resize-none bg-background border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-muted-foreground/50 focus-visible:ring-primary/50"
                 required
               />
             </div>
 
             {/* Date */}
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label className="text-gray-900 dark:text-white">Date</Label>
               <Popover
                 open={calendarOpen}
                 onOpenChange={setCalendarOpen}
@@ -165,14 +160,16 @@ export const AddExpense: React.FC = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-12 justify-start text-left font-normal rounded-xl"
+                    className="w-full h-12 p-0 bg-transparent border-0 hover:bg-transparent"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(date, "PPP")}
+                    <div className="flex items-center justify-start w-full h-12 px-4 text-left font-normal rounded-xl bg-background border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(date, "PPP")}
+                    </div>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-auto p-0"
+                  className="w-auto p-0 bg-card border-gray-200 dark:border-white/10 text-foreground"
                   align="start"
                 >
                   <Calendar
@@ -185,6 +182,7 @@ export const AddExpense: React.FC = () => {
                       }
                     }}
                     initialFocus
+                    className="bg-card text-foreground"
                   />
                 </PopoverContent>
               </Popover>
@@ -193,24 +191,26 @@ export const AddExpense: React.FC = () => {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white h-12 rounded-xl text-base"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-xl text-base"
             >
               Add Expense
             </Button>
           </form>
-        </Card>
+        </div>
 
         {/* Quick Tips */}
-        <div className="mt-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 text-sm">
-          <p className="text-blue-800 dark:text-blue-300 font-medium mb-1">
-            💡 Quick Tip
-          </p>
-          <p className="text-blue-600 dark:text-blue-400">
-            Add expenses right away to maintain accurate
-            tracking and better insights!
-          </p>
+        <div className="mt-6 p-5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-4">
+          <div className="p-2 rounded-full bg-blue-500/20 text-blue-500 mt-0.5">
+            <div className="w-4 h-4 flex items-center justify-center">💡</div>
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-500 text-sm mb-1">Quick Tip</h4>
+            <p className="text-xs text-blue-400/80 leading-relaxed">
+              Add expenses right away to maintain accurate tracking and better insights!
+            </p>
+          </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };

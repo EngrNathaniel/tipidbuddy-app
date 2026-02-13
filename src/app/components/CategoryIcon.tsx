@@ -31,3 +31,14 @@ export const getCategoryColor = (category: string): string => {
   };
   return colors[category as keyof typeof colors] || colors.Others;
 };
+
+export const getCategoryBaseColor = (category: string): string => {
+  const colors: Record<string, string> = {
+    Food: 'emerald',
+    Transport: 'blue',
+    School: 'purple',
+    Entertainment: 'yellow',
+    Others: 'gray',
+  };
+  return colors[category] || 'gray';
+};

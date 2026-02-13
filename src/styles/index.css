@@ -2,8 +2,47 @@
 @import "./tailwind.css";
 @import "./theme.css";
 
+@theme inline {
+  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+}
+
 html,
 body {
   height: 100%;
   overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-accent {
+  background: var(--gradient-accent);
+}
+
+.bg-gradient-warm {
+  background: var(--gradient-warm);
+}
+
+.bg-gradient-header {
+  background: var(--gradient-header);
+}
+
+.glass-card {
+  @apply bg-white/70 dark:bg-black/60 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-xl;
+}
+
+.glass-panel {
+  @apply bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/10 dark:border-white/5;
 }

@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 export const BudgetScreen: React.FC = () => {
-  const { budgets, expenses, addBudget, updateBudget, deleteBudget } = useApp();
+  const { budgets, expenses, setBudget, updateBudget, deleteBudget } = useApp();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
@@ -27,10 +27,10 @@ export const BudgetScreen: React.FC = () => {
     const monthStart = startOfMonth(now);
     const monthEnd = endOfMonth(now);
 
-    const weekExpenses = expenses.filter(e => 
+    const weekExpenses = expenses.filter(e =>
       isWithinInterval(new Date(e.date), { start: weekStart, end: weekEnd })
     );
-    const monthExpenses = expenses.filter(e => 
+    const monthExpenses = expenses.filter(e =>
       isWithinInterval(new Date(e.date), { start: monthStart, end: monthEnd })
     );
 
@@ -64,7 +64,7 @@ export const BudgetScreen: React.FC = () => {
       const startDate = budgetType === 'weekly' ? startOfWeek(now) : startOfMonth(now);
       const endDate = budgetType === 'weekly' ? endOfWeek(now) : endOfMonth(now);
 
-      addBudget({
+      setBudget({
         type: budgetType,
         amount: parseFloat(budgetAmount),
         startDate: startDate.toISOString(),
@@ -93,57 +93,74 @@ export const BudgetScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-background pb-28 pt-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-b-3xl shadow-lg">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-2xl font-bold">Budget Manager</h1>
-          <p className="text-purple-100 mt-1">Control your spending</p>
-        </div>
+      <div className="max-w-lg mx-auto px-6 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
+          Budget Manager
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Control your spending
+        </p>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
+      <div className="max-w-lg mx-auto px-6 space-y-6">
         {/* Add Budget Button */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white h-14 rounded-2xl shadow-sm">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-14 rounded-2xl shadow-sm font-medium text-base">
               <PlusCircle className="mr-2 h-5 w-5" />
               Set Budget Limit
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-md">
+          <DialogContent className="sm:max-w-[425px] bg-card border-gray-200 dark:border-white/10 text-gray-900 dark:text-white rounded-3xl">
             <DialogHeader>
               <DialogTitle>Set Budget Limit</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-muted-foreground">
                 Set your weekly or monthly budget limit to track your spending.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <Tabs value={budgetType} onValueChange={(v) => setBudgetType(v as 'weekly' | 'monthly')}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-secondary text-muted-foreground rounded-xl p-1">
+                  <TabsTrigger
+                    value="weekly"
+                    className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                  >
+                    Weekly
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="monthly"
+                    className="rounded-lg data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+                  >
+                    Monthly
+                  </TabsTrigger>
                 </TabsList>
               </Tabs>
 
               <div className="space-y-2">
-                <Label htmlFor="budget-amount">
+                <Label htmlFor="budget-amount" className="text-gray-900 dark:text-white">
                   {budgetType === 'weekly' ? 'Weekly' : 'Monthly'} Budget (₱)
                 </Label>
-                <Input
-                  id="budget-amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={budgetAmount}
-                  onChange={(e) => setBudgetAmount(e.target.value)}
-                  className="h-12 rounded-xl"
-                />
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">
+                    ₱
+                  </span>
+                  <Input
+                    id="budget-amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={budgetAmount}
+                    onChange={(e) => setBudgetAmount(e.target.value)}
+                    className="pl-8 h-12 rounded-xl bg-background border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-muted-foreground/50 focus-visible:ring-primary/50"
+                  />
+                </div>
               </div>
 
-              <Button 
+              <Button
                 onClick={handleSetBudget}
-                className="w-full bg-purple-500 hover:bg-purple-600 h-12 rounded-xl"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-xl"
               >
                 Set Budget
               </Button>
@@ -153,204 +170,201 @@ export const BudgetScreen: React.FC = () => {
 
         {/* Delete Budget Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="rounded-3xl max-w-md">
+          <DialogContent className="sm:max-w-[425px] bg-card border-gray-200 dark:border-white/10 text-gray-900 dark:text-white rounded-3xl">
             <DialogHeader>
               <DialogTitle>Reset Budget</DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="text-muted-foreground">
                 Are you sure you want to reset your budget? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <Button 
-                onClick={confirmDeleteBudget}
-                className="w-full bg-red-500 hover:bg-red-600 h-12 rounded-xl"
-              >
-                Reset Budget
-              </Button>
-              <Button 
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
                 onClick={() => setDeleteDialogOpen(false)}
-                className="w-full bg-gray-500 hover:bg-gray-600 h-12 rounded-xl"
+                className="border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
               >
                 Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteBudget}
+              >
+                Reset Budget
               </Button>
             </div>
           </DialogContent>
         </Dialog>
 
         {/* Weekly Budget */}
-        <Card className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                  <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white text-lg">Weekly Budget</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This week's spending</p>
-                </div>
+        <div className="p-6 bg-card border border-gray-200 dark:border-white/5 rounded-3xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/20 rounded-xl text-primary">
+                <TrendingUp className="h-6 w-6" />
               </div>
-              {weeklyBudget && (
-                <div className="text-right">
-                  <p className={`text-2xl font-bold ${
-                    weekProgress > 100 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'
-                  }`}>
-                    {weekProgress.toFixed(0)}%
-                  </p>
-                </div>
-              )}
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg">Weekly Budget</h3>
+                <p className="text-sm text-muted-foreground">This week's spending</p>
+              </div>
             </div>
-
-            {weeklyBudget ? (
-              <>
-                <Progress value={Math.min(weekProgress, 100)} className="h-3" />
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Spent</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.weekTotal.toFixed(2)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Budget</p>
-                    <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">₱{weeklyBudget.amount.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                {weekProgress > 100 && (
-                  <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/30 p-3 rounded-xl">
-                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-red-800 dark:text-red-300">Budget Exceeded!</p>
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        You've spent ₱{(stats.weekTotal - weeklyBudget.amount).toFixed(2)} over your budget.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {weekProgress > 80 && weekProgress <= 100 && (
-                  <div className="flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-xl">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Almost at limit!</p>
-                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                        You have ₱{(weeklyBudget.amount - stats.weekTotal).toFixed(2)} left this week.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={() => handleDeleteBudget(weeklyBudget.id, 'weekly')}
-                  className="w-full bg-red-500 hover:bg-red-600 h-12 rounded-xl"
-                >
-                  <Trash2 className="mr-2 h-5 w-5" />
-                  Reset Budget
-                </Button>
-              </>
-            ) : (
-              <div className="text-center py-6 text-gray-400 dark:text-gray-500">
-                <Wallet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No weekly budget set</p>
-                <p className="text-xs mt-1">Tap "Set Budget Limit" to get started</p>
+            {weeklyBudget && (
+              <div className="text-right">
+                <p className={`text-2xl font-bold ${weekProgress > 100 ? 'text-destructive' : 'text-gray-900 dark:text-white'
+                  }`}>
+                  {weekProgress.toFixed(0)}%
+                </p>
               </div>
             )}
           </div>
-        </Card>
+
+          {weeklyBudget ? (
+            <>
+              <Progress value={Math.min(weekProgress, 100)} className="h-3 bg-secondary/50" indicatorClassName={weekProgress > 100 ? 'bg-destructive' : 'bg-primary'} />
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-sm text-muted-foreground">Spent</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.weekTotal.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Budget</p>
+                  <p className="text-xl font-semibold text-gray-900/80 dark:text-white/80">₱{weeklyBudget.amount.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {weekProgress > 100 && (
+                <div className="flex items-start gap-2 bg-destructive/10 p-3 rounded-xl border border-destructive/20">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">Budget Exceeded!</p>
+                    <p className="text-xs text-destructive/80 mt-1">
+                      You've spent ₱{(stats.weekTotal - weeklyBudget.amount).toFixed(2)} over your budget.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {weekProgress > 80 && weekProgress <= 100 && (
+                <div className="flex items-start gap-2 bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20">
+                  <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-500">Almost at limit!</p>
+                    <p className="text-xs text-yellow-500/80 mt-1">
+                      You have ₱{(weeklyBudget.amount - stats.weekTotal).toFixed(2)} left this week.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={() => handleDeleteBudget(weeklyBudget.id, 'weekly')}
+                variant="ghost"
+                className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-xl"
+              >
+                <Trash2 className="mr-2 h-5 w-5" />
+                Reset Budget
+              </Button>
+            </>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <Wallet className="h-12 w-12 mx-auto mb-2 opacity-20" />
+              <p className="text-sm">No weekly budget set</p>
+              <p className="text-xs mt-1 text-muted-foreground/50">Tap "Set Budget Limit" to get started</p>
+            </div>
+          )}
+        </div>
 
         {/* Monthly Budget */}
-        <Card className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                  <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 dark:text-white text-lg">Monthly Budget</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">This month's spending</p>
-                </div>
+        <div className="p-6 bg-card border border-gray-200 dark:border-white/5 rounded-3xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-accent/20 rounded-xl text-accent">
+                <Wallet className="h-6 w-6" />
               </div>
-              {monthlyBudget && (
-                <div className="text-right">
-                  <p className={`text-2xl font-bold ${
-                    monthProgress > 100 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'
-                  }`}>
-                    {monthProgress.toFixed(0)}%
-                  </p>
-                </div>
-              )}
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg">Monthly Budget</h3>
+                <p className="text-sm text-muted-foreground">This month's spending</p>
+              </div>
             </div>
-
-            {monthlyBudget ? (
-              <>
-                <Progress value={Math.min(monthProgress, 100)} className="h-3" />
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Spent</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.monthTotal.toFixed(2)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Budget</p>
-                    <p className="text-xl font-semibold text-gray-700 dark:text-gray-300">₱{monthlyBudget.amount.toFixed(2)}</p>
-                  </div>
-                </div>
-
-                {monthProgress > 100 && (
-                  <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/30 p-3 rounded-xl">
-                    <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-red-800 dark:text-red-300">Budget Exceeded!</p>
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                        You've spent ₱{(stats.monthTotal - monthlyBudget.amount).toFixed(2)} over your budget.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {monthProgress > 80 && monthProgress <= 100 && (
-                  <div className="flex items-start gap-2 bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-xl">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Almost at limit!</p>
-                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
-                        You have ₱{(monthlyBudget.amount - stats.monthTotal).toFixed(2)} left this month.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={() => handleDeleteBudget(monthlyBudget.id, 'monthly')}
-                  className="w-full bg-red-500 hover:bg-red-600 h-12 rounded-xl"
-                >
-                  <Trash2 className="mr-2 h-5 w-5" />
-                  Reset Budget
-                </Button>
-              </>
-            ) : (
-              <div className="text-center py-6 text-gray-400 dark:text-gray-500">
-                <Wallet className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No monthly budget set</p>
-                <p className="text-xs mt-1">Tap "Set Budget Limit" to get started</p>
+            {monthlyBudget && (
+              <div className="text-right">
+                <p className={`text-2xl font-bold ${monthProgress > 100 ? 'text-destructive' : 'text-gray-900 dark:text-white'
+                  }`}>
+                  {monthProgress.toFixed(0)}%
+                </p>
               </div>
             )}
           </div>
-        </Card>
+
+          {monthlyBudget ? (
+            <>
+              <Progress value={Math.min(monthProgress, 100)} className="h-3 bg-secondary/50" indicatorClassName={monthProgress > 100 ? 'bg-destructive' : 'bg-accent'} />
+              <div className="flex justify-between items-end">
+                <div>
+                  <p className="text-sm text-muted-foreground">Spent</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">₱{stats.monthTotal.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Budget</p>
+                  <p className="text-xl font-semibold text-gray-900/80 dark:text-white/80">₱{monthlyBudget.amount.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {monthProgress > 100 && (
+                <div className="flex items-start gap-2 bg-destructive/10 p-3 rounded-xl border border-destructive/20">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-destructive">Budget Exceeded!</p>
+                    <p className="text-xs text-destructive/80 mt-1">
+                      You've spent ₱{(stats.monthTotal - monthlyBudget.amount).toFixed(2)} over your budget.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {monthProgress > 80 && monthProgress <= 100 && (
+                <div className="flex items-start gap-2 bg-yellow-500/10 p-3 rounded-xl border border-yellow-500/20">
+                  <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-yellow-500">Almost at limit!</p>
+                    <p className="text-xs text-yellow-500/80 mt-1">
+                      You have ₱{(monthlyBudget.amount - stats.monthTotal).toFixed(2)} left this month.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={() => handleDeleteBudget(monthlyBudget.id, 'monthly')}
+                variant="ghost"
+                className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-xl"
+              >
+                <Trash2 className="mr-2 h-5 w-5" />
+                Reset Budget
+              </Button>
+            </>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <Wallet className="h-12 w-12 mx-auto mb-2 opacity-20" />
+              <p className="text-sm">No monthly budget set</p>
+              <p className="text-xs mt-1 text-muted-foreground/50">Tap "Set Budget Limit" to get started</p>
+            </div>
+          )}
+        </div>
 
         {/* Budgeting Tips */}
-        <Card className="p-5 bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl shadow-sm border-purple-200 dark:border-purple-800">
-          <div className="flex gap-3">
-            <div className="text-2xl">📊</div>
-            <div>
-              <h4 className="font-semibold text-purple-900 dark:text-purple-300 mb-1">Budget Tips</h4>
-              <ul className="text-sm text-purple-800 dark:text-purple-400 space-y-1">
-                <li>• Follow the 50/30/20 rule: needs, wants, savings</li>
-                <li>• Review your budget weekly to stay on track</li>
-                <li>• Adjust limits based on your actual spending patterns</li>
-              </ul>
-            </div>
+        <div className="p-5 rounded-2xl bg-primary/10 border border-primary/20 flex items-start gap-4">
+          <div className="p-2 rounded-full bg-primary/20 text-primary mt-0.5">
+            <div className="w-4 h-4 flex items-center justify-center">💡</div>
           </div>
-        </Card>
+          <div>
+            <h4 className="font-semibold text-primary text-sm mb-1">Budget Tips</h4>
+            <ul className="text-xs text-primary/80 leading-relaxed space-y-1">
+              <li>• Follow the 50/30/20 rule: needs, wants, savings</li>
+              <li>• Review your budget weekly to stay on track</li>
+              <li>• Adjust limits based on your actual spending patterns</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

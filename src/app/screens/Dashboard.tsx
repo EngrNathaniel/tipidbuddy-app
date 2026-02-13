@@ -2,18 +2,18 @@ import React, { useMemo, useState } from "react";
 import { useApp } from "@/app/context/AppContext";
 import {
   Wallet,
-  TrendingUp,
-  Target,
   Calendar,
   Trash2,
   Bell,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   CategoryIcon,
   getCategoryColor,
+  getCategoryBaseColor,
 } from "@/app/components/CategoryIcon";
+import { SpendingAnalytics } from "@/app/components/SpendingAnalytics";
 import { Card } from "@/app/components/ui/card";
-import { Progress } from "@/app/components/ui/progress";
 import { Button } from "@/app/components/ui/button";
 import {
   Dialog,
@@ -37,14 +37,10 @@ export const Dashboard: React.FC = () => {
     user,
     expenses,
     budgets,
-    savingsGoals,
     deleteExpense,
   } = useApp();
-  const [deleteDialogOpen, setDeleteDialogOpen] =
-    useState(false);
-  const [expenseToDelete, setExpenseToDelete] = useState<
-    string | null
-  >(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -76,30 +72,18 @@ export const Dashboard: React.FC = () => {
       0,
     );
 
-    // Get budgets
-    const weeklyBudget = budgets.find(
-      (b) => b.type === "weekly",
-    );
-    const monthlyBudget = budgets.find(
-      (b) => b.type === "monthly",
-    );
+    // Check budget limits
+    const weeklyBudget = budgets.find(b => b.type === 'weekly');
+    const monthlyBudget = budgets.find(b => b.type === 'monthly');
 
-    const totalSavings = savingsGoals.reduce(
-      (sum, g) => sum + g.currentAmount,
-      0,
-    );
-    const totalSavingsGoal = savingsGoals.reduce(
-      (sum, g) => sum + g.targetAmount,
-      0,
-    );
+    const isWeeklyExceeded = weeklyBudget ? weekTotal > weeklyBudget.amount : false;
+    const isMonthlyExceeded = monthlyBudget ? monthTotal > monthlyBudget.amount : false;
+    const hasNotification = isWeeklyExceeded || isMonthlyExceeded;
 
     return {
       weekTotal,
       monthTotal,
-      weeklyBudget: weeklyBudget?.amount || 0,
-      monthlyBudget: monthlyBudget?.amount || 0,
-      totalSavings,
-      totalSavingsGoal,
+      hasNotification,
       recentExpenses: expenses
         .slice(0, 5)
         .sort(
@@ -108,20 +92,7 @@ export const Dashboard: React.FC = () => {
             new Date(a.date).getTime(),
         ),
     };
-  }, [expenses, budgets, savingsGoals]);
-
-  const weekProgress =
-    stats.weeklyBudget > 0
-      ? (stats.weekTotal / stats.weeklyBudget) * 100
-      : 0;
-  const monthProgress =
-    stats.monthlyBudget > 0
-      ? (stats.monthTotal / stats.monthlyBudget) * 100
-      : 0;
-  const savingsProgress =
-    stats.totalSavingsGoal > 0
-      ? (stats.totalSavings / stats.totalSavingsGoal) * 100
-      : 0;
+  }, [expenses, budgets]);
 
   const handleDeleteExpense = (expenseId: string) => {
     setExpenseToDelete(expenseId);
@@ -138,266 +109,129 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
+    <div className="min-h-screen bg-background pb-28 pt-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 rounded-b-3xl shadow-lg">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-start justify-between mb-1">
-            <div>
-              <h1 className="text-2xl font-bold">
-                Hello, {user?.name}!{" "}
-              </h1>
-              <p className="text-emerald-100">
-                Here's your financial overview
-              </p>
-            </div>
-            <button className="relative p-2 hover:bg-emerald-400/30 rounded-full transition-colors">
-              <Bell className="h-6 w-6" />
-              {/* Notification badge - shows if there are budget warnings */}
-              {((stats.weeklyBudget > 0 && weekProgress > 90) ||
-                (stats.monthlyBudget > 0 && monthProgress > 90)) && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-              )}
-            </button>
+      <div className="max-w-lg mx-auto px-6 mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">
+              Hello, {user?.name || "Natty"}!
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Here's your financial overview
+            </p>
           </div>
+          <button className="relative w-10 h-10 rounded-full bg-card/50 border border-gray-200 dark:border-white/5 flex items-center justify-center hover:bg-card/80 transition-colors">
+            <Bell className="w-5 h-5 text-muted-foreground" />
+            {stats.hasNotification && (
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-destructive rounded-full ring-2 ring-card shadow-sm animate-pulse" />
+            )}
+          </button>
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <Card className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-xl">
-                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+      <div className="max-w-lg mx-auto px-6 space-y-6">
+        {/* Quick Stats Row */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Weekly Stat */}
+          <div className="p-4 rounded-3xl bg-card border border-gray-200 dark:border-white/5 flex flex-col justify-between h-32 relative overflow-hidden group">
+            <div className="flex items-start justify-between relative z-10">
+              <div className="p-2.5 rounded-xl bg-primary/20 text-primary">
+                <Calendar className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  This Week
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  ₱{stats.weekTotal.toFixed(2)}
-                </p>
-              </div>
+              <span className="text-xs font-medium text-muted-foreground">This Week</span>
             </div>
-          </Card>
+            <div className="relative z-10">
+              <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">₱{stats.weekTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
+            {/* Decorative BG Gradient */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </div>
 
-          <Card className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-xl">
-                <Wallet className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+          {/* Monthly Stat */}
+          <div className="p-4 rounded-3xl bg-card border border-gray-200 dark:border-white/5 flex flex-col justify-between h-32 relative overflow-hidden group">
+            <div className="flex items-start justify-between relative z-10">
+              <div className="p-2.5 rounded-xl bg-accent/20 text-accent">
+                <ArrowUpRight className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  This Month
-                </p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">
-                  ₱{stats.monthTotal.toFixed(2)}
-                </p>
-              </div>
+              <span className="text-xs font-medium text-muted-foreground">This Month</span>
             </div>
-          </Card>
+            <div className="relative z-10">
+              <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">₱{stats.monthTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            </div>
+            {/* Decorative BG Gradient */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </div>
         </div>
 
-        {/* Budget Overview */}
-        {stats.weeklyBudget > 0 && (
-          <Card className="p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Weekly Budget
-                  </h3>
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    weekProgress > 100
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-gray-600 dark:text-gray-400"
-                  }`}
-                >
-                  {weekProgress.toFixed(0)}%
-                </span>
-              </div>
-              <Progress
-                value={Math.min(weekProgress, 100)}
-                className="h-2"
-              />
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  ₱{stats.weekTotal.toFixed(2)}
-                </span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  of ₱{stats.weeklyBudget.toFixed(2)}
-                </span>
-              </div>
-              {weekProgress > 90 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 p-2 rounded-lg">
-                  ⚠️ You're close to your weekly budget limit!
-                </p>
-              )}
-            </div>
-          </Card>
-        )}
+        {/* Spending Analytics */}
+        <SpendingAnalytics />
 
-        {stats.monthlyBudget > 0 && (
-          <Card className="p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Monthly Budget
-                  </h3>
-                </div>
-                <span
-                  className={`text-sm font-medium ${
-                    monthProgress > 100
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-gray-600 dark:text-gray-400"
-                  }`}
-                >
-                  {monthProgress.toFixed(0)}%
-                </span>
-              </div>
-              <Progress
-                value={Math.min(monthProgress, 100)}
-                className="h-2"
-              />
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
-                  ₱{stats.monthTotal.toFixed(2)}
-                </span>
-                <span className="text-gray-600 dark:text-gray-400">
-                  of ₱{stats.monthlyBudget.toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </Card>
-        )}
+        {/* Recent Expenses List */}
+        <div className="bg-card rounded-3xl border border-gray-200 dark:border-white/5 p-6 min-h-[300px]">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Recent Expenses</h3>
 
-        {/* Savings Goals */}
-        {savingsGoals.length > 0 && (
-          <Card className="p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Savings Goals
-                </h3>
-              </div>
-              <div className="space-y-3">
-                {savingsGoals.slice(0, 2).map((goal) => {
-                  const progress =
-                    (goal.currentAmount / goal.targetAmount) *
-                    100;
-                  return (
-                    <div key={goal.id} className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
-                          {goal.name}
-                        </span>
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {progress.toFixed(0)}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={Math.min(progress, 100)}
-                        className="h-2"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                        <span>
-                          ₱{goal.currentAmount.toFixed(2)}
-                        </span>
-                        <span>
-                          of ₱{goal.targetAmount.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Recent Expenses */}
-        <Card className="p-5 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-            Recent Expenses
-          </h3>
           {stats.recentExpenses.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {stats.recentExpenses.map((expense) => (
                 <div
                   key={expense.id}
-                  className="flex items-center justify-between gap-2"
+                  className="flex items-center justify-between group"
                 >
-                  <div className="flex items-center gap-3 flex-1">
+                  <div className="flex items-center gap-4">
                     <div
-                      className={`p-2 rounded-xl ${getCategoryColor(expense.category)}`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center bg-${getCategoryBaseColor(expense.category)}-500/10 text-${getCategoryBaseColor(expense.category)}-600 dark:text-${getCategoryBaseColor(expense.category)}-400`}
                     >
                       <CategoryIcon
                         category={expense.category}
-                        size={20}
+                        size={18}
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white text-sm">
                         {expense.description}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {format(
-                          new Date(expense.date),
-                          "MMM dd, yyyy",
-                        )}
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(expense.date), "MMM dd, yyyy")}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      ₱{expense.amount.toFixed(2)}
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                      -₱{expense.amount.toFixed(2)}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 h-8 w-8 p-0"
-                      onClick={() =>
-                        handleDeleteExpense(expense.id)
-                      }
+                    <button
+                      onClick={() => handleDeleteExpense(expense.id)}
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
                     >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
-              <p>No expenses yet</p>
-              <p className="text-sm mt-1">
+            <div className="flex flex-col items-center justify-center h-[200px] text-center">
+              <p className="text-muted-foreground mb-2">No expenses yet</p>
+              <p className="text-xs text-muted-foreground/50">
                 Tap the + button to add one
               </p>
             </div>
           )}
-        </Card>
+        </div>
 
-        {/* Tips */}
-        <Card className="p-5 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-2xl shadow-sm border-yellow-200 dark:border-yellow-800">
-          <div className="flex gap-3">
-            <div className="text-2xl">💡</div>
-            <div>
-              <h4 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-1">
-                Tipid Tip!
-              </h4>
-              <p className="text-sm text-yellow-800 dark:text-yellow-400">
-                Try packing lunch from home to save ₱50-100 per
-                day. That's up to ₱2,000/month!
-              </p>
-            </div>
+        {/* Tipid Tip */}
+        <div className="p-5 rounded-2xl bg-primary/10 border border-primary/20 flex items-start gap-4">
+          <div className="p-2 rounded-full bg-primary/20 text-primary mt-0.5">
+            <div className="w-4 h-4 flex items-center justify-center">💡</div>
           </div>
-        </Card>
+          <div>
+            <h4 className="font-semibold text-primary text-sm mb-1">Tipid Tip!</h4>
+            <p className="text-xs text-primary/80 leading-relaxed">
+              Use the 50/30/20 rule: needs, wants, and savings.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Delete Expense Dialog */}
@@ -405,10 +239,10 @@ export const Dashboard: React.FC = () => {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-card border-gray-200 dark:border-white/10 text-gray-900 dark:text-white">
           <DialogHeader>
             <DialogTitle>Are you sure?</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-muted-foreground">
               This action cannot be undone. This will
               permanently delete the expense.
             </DialogDescription>
@@ -417,6 +251,7 @@ export const Dashboard: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
+              className="border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
             >
               Cancel
             </Button>

@@ -10,6 +10,8 @@ import { Analytics } from "@/app/screens/Analytics";
 import { Profile } from "@/app/screens/Profile";
 import { Groups } from "@/app/screens/Groups";
 import { BottomNav } from "@/app/components/BottomNav";
+import { AnimatePresence } from "motion/react";
+import { PageTransition } from "@/app/components/PageTransition";
 import { Toaster } from "@/app/components/ui/sonner";
 
 function AppContent() {
@@ -47,27 +49,35 @@ function AppContent() {
 
   // Render the appropriate screen
   const renderScreen = () => {
-    switch (currentPage) {
-      case "home":
-        return <Dashboard />;
-      case "add":
-        return <AddExpense />;
-      case "budget":
-        return <BudgetScreen />;
-      case "groups":
-        return <Groups />;
-      case "analytics":
-        return <Analytics />;
-      case "profile":
-        return <Profile />;
-      default:
-        return <Dashboard />;
-    }
+    return (
+      <PageTransition key={currentPage} className="h-full pb-20">
+        {(() => {
+          switch (currentPage) {
+            case "home":
+              return <Dashboard />;
+            case "add":
+              return <AddExpense />;
+            case "budget":
+              return <BudgetScreen />;
+            case "groups":
+              return <Groups />;
+            case "analytics":
+              return <Analytics />;
+            case "profile":
+              return <Profile />;
+            default:
+              return <Dashboard />;
+          }
+        })()}
+      </PageTransition>
+    );
   };
 
   return (
     <>
-      {renderScreen()}
+      <AnimatePresence mode="wait">
+        {renderScreen()}
+      </AnimatePresence>
       <BottomNav
         currentPage={currentPage}
         onNavigate={setCurrentPage}

@@ -28,15 +28,15 @@ export function CalendarView({ onBack }: CalendarViewProps) {
     const monthEnd = endOfMonth(currentMonth);
     const calendarStart = startOfWeek(monthStart);
     const calendarEnd = endOfWeek(monthEnd);
-    
+
     const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
     return days.map(date => {
       const dateStr = format(date, 'yyyy-MM-dd');
       const dayExpenses = expenses.filter(e => e.date === dateStr);
-      
+
       const totalExpenses = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
-      
+
       return {
         date,
         expenses: totalExpenses,
@@ -58,7 +58,7 @@ export function CalendarView({ onBack }: CalendarViewProps) {
   const monthSummary = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
-    
+
     const monthExpenses = expenses.filter(e => {
       const expenseDate = new Date(e.date);
       return expenseDate >= monthStart && expenseDate <= monthEnd;
@@ -91,7 +91,7 @@ export function CalendarView({ onBack }: CalendarViewProps) {
 
   const getDayColor = (day: DayData) => {
     if (!day.hasTransactions) return '';
-    
+
     if (day.expenses > 500) return 'bg-red-500/20 border-red-500';
     if (day.expenses > 200) return 'bg-orange-500/20 border-orange-500';
     if (day.expenses > 0) return 'bg-yellow-500/20 border-yellow-500';
@@ -99,60 +99,69 @@ export function CalendarView({ onBack }: CalendarViewProps) {
   };
 
   return (
-    <div className={`min-h-screen pb-20 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen bg-background pb-20">
       {/* Header */}
-      <div className={`${isDarkMode ? 'bg-gradient-to-r from-blue-600 to-cyan-600' : 'bg-gradient-to-r from-blue-500 to-cyan-500'} text-white p-6 rounded-b-3xl shadow-lg`}>
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={onBack} className="p-2 hover:bg-white/10 rounded-lg">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-2xl font-bold">Financial Calendar</h1>
-          <CalendarIcon className="w-8 h-8" />
+      <div className="max-w-lg mx-auto px-6 mb-8 pt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onBack}
+              className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-900 dark:text-white" />
+            </button>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Financial Calendar</h1>
+          </div>
+          <div className="p-3 bg-primary/10 rounded-full">
+            <CalendarIcon className="w-6 h-6 text-primary" />
+          </div>
         </div>
 
         {/* Month Summary */}
-        <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 grid grid-cols-3 gap-3">
-          <div>
-            <p className="text-white/80 text-xs">Total</p>
-            <p className="text-lg font-bold">₱{monthSummary.total.toFixed(0)}</p>
-          </div>
-          <div>
-            <p className="text-white/80 text-xs">Transactions</p>
-            <p className="text-lg font-bold">{monthSummary.count}</p>
-          </div>
-          <div>
-            <p className="text-white/80 text-xs">Average</p>
-            <p className="text-lg font-bold">₱{monthSummary.average.toFixed(0)}</p>
+        <div className="bg-card border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-sm">
+          <div className="grid grid-cols-3 gap-3 divide-x divide-gray-100 dark:divide-white/5">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground mb-1">Total</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">₱{monthSummary.total.toFixed(0)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground mb-1">Transactions</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">{monthSummary.count}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground mb-1">Average</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">₱{monthSummary.average.toFixed(0)}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="max-w-lg mx-auto px-6 space-y-6">
         {/* Month Navigation */}
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-4 shadow-md`}>
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-card border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
             <button
               onClick={handlePrevMonth}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-colors"
             >
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="text-center">
-              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                 {format(currentMonth, 'MMMM yyyy')}
               </h2>
             </div>
             <button
               onClick={handleNextMonth}
-              className={`p-2 rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-900 dark:text-white transition-colors"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
 
           <button
             onClick={handleToday}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium mb-4"
+            className="w-full bg-primary/10 hover:bg-primary/20 text-primary py-2.5 px-4 rounded-xl text-sm font-medium mb-6 transition-colors"
           >
             Go to Today
           </button>
@@ -163,9 +172,7 @@ export function CalendarView({ onBack }: CalendarViewProps) {
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div
                 key={day}
-                className={`text-center text-xs font-medium py-2 ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}
+                className="text-center text-xs font-medium py-2 text-muted-foreground"
               >
                 {day}
               </div>
@@ -182,41 +189,32 @@ export function CalendarView({ onBack }: CalendarViewProps) {
                   key={index}
                   onClick={() => setSelectedDate(day.date)}
                   disabled={!isCurrentMonth}
-                  className={`aspect-square p-1 rounded-lg border transition-all ${
-                    !isCurrentMonth
-                      ? 'opacity-30 cursor-not-allowed'
+                  className={`aspect-square p-0.5 rounded-xl border transition-all ${!isCurrentMonth
+                      ? 'opacity-0 cursor-default border-transparent'
                       : isSelected
-                      ? 'bg-blue-500 text-white border-blue-500 scale-95'
-                      : isToday
-                      ? isDarkMode
-                        ? 'bg-gray-700 border-blue-400'
-                        : 'bg-blue-50 border-blue-400'
-                      : day.hasTransactions
-                      ? getDayColor(day)
-                      : isDarkMode
-                      ? 'border-gray-700 hover:bg-gray-700'
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}
+                        ? 'bg-primary text-primary-foreground border-primary scale-105 shadow-md z-10'
+                        : isToday
+                          ? 'bg-primary/5 border-primary/50'
+                          : day.hasTransactions
+                            ? getDayColor(day)
+                            : 'border-transparent hover:bg-gray-100 dark:hover:bg-white/5'
+                    }`}
                 >
                   <div className="flex flex-col items-center justify-center h-full">
-                    <span className={`text-sm font-medium ${
-                      isSelected
-                        ? 'text-white'
-                        : !isCurrentMonth
-                        ? isDarkMode ? 'text-gray-600' : 'text-gray-400'
-                        : isDarkMode ? 'text-white' : 'text-gray-900'
-                    }`}>
+                    <span className={`text-xs font-medium ${isSelected
+                        ? 'text-primary-foreground'
+                        : isToday
+                          ? 'text-primary'
+                          : 'text-gray-900 dark:text-white'
+                      }`}>
                       {format(day.date, 'd')}
                     </span>
                     {day.hasTransactions && !isSelected && (
-                      <span className={`text-xs font-bold ${
-                        day.expenses > 500 ? 'text-red-500' :
-                        day.expenses > 200 ? 'text-orange-500' :
-                        day.expenses > 0 ? 'text-yellow-500' :
-                        'text-green-500'
-                      }`}>
-                        ₱{day.expenses.toFixed(0)}
-                      </span>
+                      <div className={`mt-0.5 w-1.5 h-1.5 rounded-full ${day.expenses > 500 ? 'bg-red-500' :
+                          day.expenses > 200 ? 'bg-orange-500' :
+                            day.expenses > 0 ? 'bg-yellow-500' :
+                              'bg-emerald-500'
+                        }`} />
                     )}
                   </div>
                 </button>
@@ -225,22 +223,22 @@ export function CalendarView({ onBack }: CalendarViewProps) {
           </div>
 
           {/* Legend */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className={`text-xs font-medium mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5">
+            <p className="text-xs font-medium mb-3 text-muted-foreground">
               Expense Legend:
             </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-500/20 border border-yellow-500"></div>
-                <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>₱0 - 200</span>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <span className="text-xs text-muted-foreground">₱0-200</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500"></div>
-                <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>₱200 - 500</span>
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span className="text-xs text-muted-foreground">₱200-500</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-red-500/20 border border-red-500"></div>
-                <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>₱500+</span>
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-xs text-muted-foreground">₱500+</span>
               </div>
             </div>
           </div>
@@ -248,60 +246,58 @@ export function CalendarView({ onBack }: CalendarViewProps) {
 
         {/* Selected Date Details */}
         {selectedDate && (
-          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl p-6 shadow-md`}>
-            <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className="bg-card border border-gray-200 dark:border-white/5 rounded-3xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
               {format(selectedDate, 'MMMM d, yyyy')}
             </h3>
 
             {selectedDateExpenses.length > 0 ? (
               <>
                 {/* Summary */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-red-50'} p-3 rounded-xl`}>
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl">
                     <div className="flex items-center gap-2 mb-1">
                       <TrendingDown className="w-4 h-4 text-red-500" />
-                      <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <span className="text-xs text-muted-foreground">
                         Expenses
                       </span>
                     </div>
-                    <p className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       ₱{selectedDateExpenses.reduce((sum, e) => sum + e.amount, 0).toFixed(2)}
                     </p>
                   </div>
-                  <div className={`${isDarkMode ? 'bg-gray-700' : 'bg-blue-50'} p-3 rounded-xl`}>
+                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl">
                     <div className="flex items-center gap-2 mb-1">
-                      <CalendarIcon className="w-4 h-4 text-blue-500" />
-                      <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <CalendarIcon className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">
                         Count
                       </span>
                     </div>
-                    <p className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       {selectedDateExpenses.length}
                     </p>
                   </div>
                 </div>
 
                 {/* Transactions List */}
-                <div className="space-y-2">
-                  <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Transactions:
                   </p>
                   {selectedDateExpenses.map((expense) => (
                     <div
                       key={expense.id}
-                      className={`flex items-center justify-between p-3 rounded-xl ${
-                        isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-                      }`}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5"
                     >
                       <div>
-                        <p className={`font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                        <p className="font-medium text-gray-900 dark:text-white mb-0.5">
                           {expense.description}
                         </p>
-                        <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <p className="text-xs text-muted-foreground">
                           {expense.category}
                         </p>
                       </div>
-                      <p className={`font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                      <p className="font-bold text-gray-900 dark:text-white">
                         ₱{expense.amount.toFixed(2)}
                       </p>
                     </div>
@@ -310,7 +306,7 @@ export function CalendarView({ onBack }: CalendarViewProps) {
               </>
             ) : (
               <div className="text-center py-8">
-                <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className="text-muted-foreground">
                   No transactions on this date
                 </p>
               </div>
